@@ -52,7 +52,7 @@ F5TTS_ema_model = load_model(
 print("Models loaded successfully")
 
 
-async def process_tts(audio_url: str, reference_text: str, text_to_generate: str, callback_url: str):
+async def process_tts(audio_url: str, reference_text: str, text_to_generate: str, callback_url: str, generated_audio_id: str):
     temp_audio_path = None
     output_path = None
 
@@ -108,13 +108,15 @@ async def process_tts(audio_url: str, reference_text: str, text_to_generate: str
         requests.post(callback_url, json={
             "status": "completed",
             "audio_url": url,
-            "file_key": file_key
+            "file_key": file_key,
+            "generated_audio_id": generated_audio_id
         })
 
     except Exception as e:
         print(f"Error: {str(e)}")
         requests.post(callback_url, json={
             "status": "failed",
+            "generated_audio_id": generated_audio_id,
             "error": str(e)
         })
 
@@ -131,12 +133,14 @@ async def generate_speech(
     audio_url: str = Form(...),
     reference_text: str = Form(None),
     text_to_generate: str = Form(...),
-    callback_url: str = Form(...)
+    callback_url: str = Form(...),
+    generated_audio_id: str = Form(...),
 ):
     asyncio.create_task(process_tts(
-        audio_url, reference_text, text_to_generate, callback_url))
+        audio_url, reference_text, text_to_generate, callback_url, generated_audio_id))
     return {"status": "processing", "message": "TTS generation started"}
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=7860)
+

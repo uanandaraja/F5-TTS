@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Form, BackgroundTasks
 from fastapi.responses import FileResponse
+import requests
 from f5_tts.model import DiT
 from f5_tts.infer.utils_infer import (
     load_vocoder,
@@ -35,24 +36,24 @@ print("Models loaded successfully")
 @app.post("/tts")
 async def generate_speech(
     background_tasks: BackgroundTasks,
-    audio_file: UploadFile = File(...),
+    audio_url: str = Form(...),
     reference_text: str = Form(None),
     text_to_generate: str = Form(...)
 ):
     try:
-        print("Saving uploaded audio...")
+        print("Downloading audio from URL...")
+        response = requests.get(audio_url)
+        response.raise_for_status()
+
         with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio:
-            content = await audio_file.read()
-            temp_audio.write(content)
+            temp_audio.write(response.content)
             temp_audio_path = temp_audio.name
-            print(f"Saved temp audio to: {temp_audio_path}")
 
         print("Processing reference audio and text...")
         ref_audio, ref_text = preprocess_ref_audio_text(
             temp_audio_path,
             reference_text
         )
-        print("Reference processing complete")
 
         print("Generating speech...")
         final_wave, final_sample_rate, _ = infer_process(

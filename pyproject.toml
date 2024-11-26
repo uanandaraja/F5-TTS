@@ -39,6 +39,8 @@ dependencies = [
   "vocos",
   "wandb",
   "fastapi",
+  "python-dotenv",
+  "boto3",
   "uvicorn",
   "x_transformers>=1.31.14",
 ]

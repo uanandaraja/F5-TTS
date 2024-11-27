@@ -96,11 +96,12 @@ async def process_tts(audio_url: str, reference_text: str, text_to_generate: str
         file_key = f"tts/{timestamp}_{uuid.uuid4()}.wav"
         r2.upload_file(output_path, BUCKET_NAME, file_key)
 
-        # Generate URL (valid for 1 hour)
+        # Generate URL (valid for 6 months)
+        # TODO: this not really secure i think
         url = r2.generate_presigned_url(
             'get_object',
             Params={'Bucket': BUCKET_NAME, 'Key': file_key},
-            ExpiresIn=3600
+            ExpiresIn=15552000
         )
 
         # Send callback
